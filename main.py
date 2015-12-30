@@ -22,13 +22,13 @@ ScreenSize = width, height = 800, 600 #Should be in multiples of 10!
 
 CurrentPixels = numpy.ones((width / 10, (height / 2) / 10), dtype=int) #Generate array for storing whether a "pixel" is there or not
 
-Screen = pygame.display.set_mode(ScreenSize)
+Screen = pygame.display.set_mode(ScreenSize, pygame.HWSURFACE | pygame.DOUBLEBUF)
 pygame.display.set_caption("Breakout")
 
 CurrentJoystick = pygame.joystick.Joystick(0)
 CurrentJoystick.init()
 
-PaddleWidth = 150 #Paddle width
+PaddleWidth = 300 #Paddle width
 
 PongBallRect = pygame.Rect((width / 2, int(height * 0.6)), (10, 10)) #Calculate initial rectangle for ball
 
@@ -144,6 +144,8 @@ def mainLoop():
 			#Paddle = pygame.draw.rect(Screen, (255, 255, 255), (JoystickXVal, JoystickYVal, PaddleWidth, 10), 0)#(height * 0.75), 100, 10), 0)
 			Paddle = pygame.draw.rect(Screen, (255, 255, 255), (JoystickXVal, int(height * 0.75), PaddleWidth, 10), 0)
 
+			#pygame.display.update()
+
 			PongBallRect = PongBallRect.move(PongBallSpeed) #Move the specified amount of pixels, hence effective speed
 
 			if PongBallRect.left <= 0 or PongBallRect.right >= width: #Bounce off the sides
@@ -163,17 +165,20 @@ def mainLoop():
 			#print("Pixel at ball X: {}".format((round_down(PongBallRect.centerx, 10) / 10))) #Debug the ball location
 			#print("Pixel at ball Y: {}".format((round_down(PongBallRect.centery, 10) / 10)))
 
+			#--BALL PIXEL CHECKING--
 			if Screen.get_at((PongBallRect.centerx, PongBallRect.centery)) == GREY: #If the ball is sat over a grey pixel
 				CurrentPixels[round_down(PongBallRect.centerx, 10) / 10][round_down(PongBallRect.centery, 10) / 10] = 0 #Remove it
+				if (round_down(PongBallRect.centerx, 10) / 10) + 1 < 80:
+					CurrentPixels[(round_down(PongBallRect.centerx, 10) / 10) + 1][round_down(PongBallRect.centery, 10) / 10] = 0 #Remove it
 				PongBallSpeed[0] = PongBallSpeed[0] #Flip the directions
 				PongBallSpeed[1] = -PongBallSpeed[1]
 				Score += 1
 
+			#--FINAL DRAWING--
 			pygame.draw.circle(Screen, (255, 255, 255), PongBallRect.center, 10) #Draw the ball in it's new position
 
 			pygame.display.flip() #Render everything to screen
 			clock.tick()
-			#time.sleep(0.005)
 
 if __name__ == '__main__': #Run when program starts
 	setup()
